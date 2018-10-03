@@ -63,14 +63,16 @@ class Request(object):
     #
     @classmethod
     def get_msg_date(self, message):
+        'Return datetime()'
         date = message['message']['date']
         return datetime.fromtimestamp(date)
     #
     @classmethod
-    def get_username(self, message):
+    def get_username(self, message, dl=' '):
+        'Return \"first_name + dl + last_name\"'
         first = message['message']['chat']['first_name']
         last = message['message']['chat']['last_name']
-        return '{} {}'.format(first, last)
+        return '{}{}{}'.format(first, dl, last)
     #
     @classmethod
     def get_chat_text(self, message):
@@ -86,9 +88,14 @@ msg_format (Values:\n\tchat_id\n\tmessage_id
     dt_format = '%H:%M:%S %m-%d-%Y'
     msg_format = '{msg_date} {username} {chat_text}'
     #
-    def __init__(self, message):
-        'Message(request_obj)'
+    def __init__(self, message, dt_format=None, msg_format=None):
+        '''\
+Message(request_obj, dt_format=None, msg_format=None)
+dt_format=None (Use default), msg_format=None (Use default)'''
         self._msg = message
+        #
+        if dt_format: self.dt_format = dt_format
+        if msg_format: self.msg_format = msg_format
     #
     def __str__(self):
         'Return \"Format string.\"'
@@ -134,11 +141,13 @@ class Telegram(object):
         self.__web.request(method, self.__url.path + target)
     #
     def get_botname(self):
+        'Return json_data'
         self.__send_req('getMe')
         data = Request(self.__web)
         return data.json
     #
     def get_resp(self):
+        'Return request_obj'
         self.__send_req('getUpdates')
         return Request(self.__web)
     #
@@ -147,6 +156,7 @@ class Telegram(object):
         return self.get_resp()
     #
     def send_message(self, chat_id, message):
+        'Return request_obj'
         data = urlencode({'chat_id': chat_id, 'text': message})
         self.__send_req('sendMessage?' + data, 'POST')
         return Request(self.__web)
