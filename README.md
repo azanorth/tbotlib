@@ -8,6 +8,7 @@ from tbotlib import Message
 
 bot = Telegram(token)
 resp = bot.get_resp()
-print resp.get_first()
+
+for msg in resp: print Message(msg)
 ```
 

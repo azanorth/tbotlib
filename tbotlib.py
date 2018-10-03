@@ -67,6 +67,12 @@ class Request(object):
         return datetime.fromtimestamp(date)
     #
     @classmethod
+    def get_username(self, message):
+        first = message['message']['chat']['first_name']
+        last = message['message']['chat']['last_name']
+        return '{} {}'.format(first, last)
+    #
+    @classmethod
     def get_chat_text(self, message):
         return message['message']['text']
 #
@@ -75,10 +81,10 @@ class Message(object):
     '''Telegram message printing...\n
 dt_format (Default: %H:%M:%S %m-%d-%Y)
 msg_format (Values:\n\tchat_id\n\tmessage_id
-\tchat_type\n\tmsg_date\n\tchat_text)'''
+\tchat_type\n\tmsg_date\n\tusername\n\tchat_text)'''
     #
     dt_format = '%H:%M:%S %m-%d-%Y'
-    msg_format = '{msg_date} {chat_id}:{message_id} {chat_text}'
+    msg_format = '{msg_date} {username} {chat_text}'
     #
     def __init__(self, message):
         'Message(request_obj)'
@@ -99,6 +105,9 @@ msg_format (Values:\n\tchat_id\n\tmessage_id
                 elif item == 'message_id':
                     buff.append(str(Request.get_message_id(self._msg)))
                     #
+                elif item == 'username':
+                    buff.append(Request.get_username(self._msg))
+                    #
                 elif item == 'chat_type':
                     buff.append(Request.get_chat_type(self._msg))
                     #
@@ -111,7 +120,7 @@ msg_format (Values:\n\tchat_id\n\tmessage_id
             #
             return ''.join(buff)
             #
-        except KeyError: pass
+        except KeyError: return
 #
 #
 class Telegram(object):
