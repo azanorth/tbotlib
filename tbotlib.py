@@ -1,7 +1,8 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 from sys import version
 from datetime import datetime
+from string import Formatter
 from json import loads as json_load
 #
 #
@@ -11,10 +12,13 @@ if version.startswith('2'):
     from httplib import urlsplit
     from urllib import urlencode
     from httplib import HTTPSConnection
-else:
+    #
+elif version.startswith('3'):
     from http.client import urlsplit
     from urllib.parse import urlencode
     from http.client import HTTPSConnection
+    #
+else: raise EnvironmentError('WTF? Version: {}'.format(version))
 #
 #
 class Request(object):
@@ -37,9 +41,13 @@ class Request(object):
         data = json_load(self.__data)
         return data['result']
     #
-    def get_first(self): return self.json[0]
+    def get_first(self):
+        try: return self.json[0]
+        except IndexError: return
     #
-    def get_last(self): return self.json[-1]
+    def get_last(self):
+        try: return self.json[-1]
+        except IndexError: return
     #
     @classmethod
     def get_message_id(self, message):
@@ -64,8 +72,46 @@ class Request(object):
 #
 #
 class Message(object):
+    '''Telegram message printing...\n
+dt_format (Default: %H:%M:%S %m-%d-%Y)
+msg_format (Values:\n\tchat_id\n\tmessage_id
+\tchat_type\n\tmsg_date\n\tchat_text)'''
+    #
+    dt_format = '%H:%M:%S %m-%d-%Y'
+    msg_format = '{msg_date} {chat_id}:{message_id} {chat_text}'
+    #
     def __init__(self, message):
-        pass
+        'Message(request_obj)'
+        self._msg = message
+    #
+    def __str__(self):
+        'Return \"Format string.\"'
+        try:
+            fmt = Formatter()
+            buff = []
+            #
+            for (dl, item, _, _) in fmt.parse(self.msg_format):
+                if dl: buff.append(dl)
+                #
+                if item == 'chat_id':
+                    buff.append(str(Request.get_chat_id(self._msg)))
+                    #
+                elif item == 'message_id':
+                    buff.append(str(Request.get_message_id(self._msg)))
+                    #
+                elif item == 'chat_type':
+                    buff.append(Request.get_chat_type(self._msg))
+                    #
+                elif item == 'msg_date':
+                    date = Request.get_msg_date(self._msg)
+                    buff.append(date.strftime(self.dt_format))
+                    #
+                elif item == 'chat_text':
+                    buff.append(Request.get_chat_text(self._msg))
+            #
+            return ''.join(buff)
+            #
+        except KeyError: pass
 #
 #
 class Telegram(object):
