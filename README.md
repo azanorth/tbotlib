@@ -2,7 +2,9 @@
 
 ### Usage:
 ```python
-import tbotlib
+from tbotlib import Telegram
+from tbotlib import Request
+from tbotlib import Message
 
 bot = Telegram(token)
 resp = bot.get_resp()

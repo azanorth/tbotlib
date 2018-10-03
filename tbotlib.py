@@ -1,10 +1,21 @@
 #!/usr/bin/env python2
 #-*- coding: utf-8 -*-
-from httplib import urlsplit
-from urllib import urlencode
+from sys import version
 from datetime import datetime
-from httplib import HTTPSConnection
 from json import loads as json_load
+#
+#
+version = version.split()[0]
+#
+if version.startswith('2'):
+    from httplib import urlsplit
+    from urllib import urlencode
+    from httplib import HTTPSConnection
+else:
+    from http.client import urlsplit
+    from urllib.parse import urlencode
+    from http.client import HTTPSConnection
+#
 #
 class Request(object):
     def __init__(self, tbot):
@@ -50,6 +61,11 @@ class Request(object):
     @classmethod
     def get_chat_text(self, message):
         return message['message']['text']
+#
+#
+class Message(object):
+    def __init__(self, message):
+        pass
 #
 #
 class Telegram(object):
