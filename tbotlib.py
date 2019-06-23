@@ -77,6 +77,15 @@ class Request(object):
     @classmethod
     def get_chat_text(self, message):
         return message['message']['text']
+    #
+    @classmethod
+    def get_msg_items(self, message):
+        return message['message']['entities']
+    #
+    @classmethod
+    def is_command(self, message):
+        for item in self.get_msg_items(message):
+            if item['type'] == 'bot_command': return True
 #
 #
 class Message(object):
