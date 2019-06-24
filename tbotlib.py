@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
-from sys import version
+from sys import version as python
 from datetime import datetime
 from string import Formatter
 from json import loads as json_load
 #
 #
-version = version.split()[0]
+python = python.split()[0]
 #
-if version.startswith('2'):
+if python.startswith('2'):
     from httplib import urlsplit
     from urllib import urlencode
     from httplib import HTTPSConnection
     #
-elif version.startswith('3'):
+elif python.startswith('3'):
     from http.client import urlsplit
     from urllib.parse import urlencode
     from http.client import HTTPSConnection
@@ -36,18 +36,17 @@ class Request(object):
     #
     def __getitem__(self, item): return self.__data[item]
     #
+    def __setitem__(self, item, value): self.__data[item] = value
+    #
     def __delitem__(self, item): del self.__data[item]
     #
     @property
     def data(self): return self.__data
     #
-    def get_first(self):
-        try: return self.__data[0]
-        except IndexError: return
-    #
-    def get_last(self):
-        try: return self.__data[-1]
-        except IndexError: return
+    def data_sort(self, func=None):
+        'Default: data_sort(func=self.get_chat_type)'
+        if not func: func = self.get_chat_type
+        self.__data = list(sorted(self.__data, key=func))
     #
     @classmethod
     def get_message_id(self, message):
