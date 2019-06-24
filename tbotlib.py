@@ -25,28 +25,28 @@ class Request(object):
     def __init__(self, tbot):
         resp = tbot.getresponse()
         self.status = (resp.status, resp.reason)
-        self.__data = resp.read()
+        self.__data = json_load(resp.read())
+        self.__data = self.__data['result']
         tbot.close()
     #
     def __iter__(self):
-        for item in self.json: yield item
+        for item in self.__data: yield item
     #
-    def __len__(self): return len(self.json)
+    def __len__(self): return len(self.__data)
+    #
+    def __getitem__(self, item): return self.__data[item]
+    #
+    def __delitem__(self, item): del self.__data[item]
     #
     @property
-    def raw(self): return self.__data
-    #
-    @property
-    def json(self):
-        data = json_load(self.__data)
-        return data['result']
+    def data(self): return self.__data
     #
     def get_first(self):
-        try: return self.json[0]
+        try: return self.__data[0]
         except IndexError: return
     #
     def get_last(self):
-        try: return self.json[-1]
+        try: return self.__data[-1]
         except IndexError: return
     #
     @classmethod
@@ -63,13 +63,13 @@ class Request(object):
     #
     @classmethod
     def get_msg_date(self, message):
-        'Return datetime()'
+        'Return: datetime()'
         date = message['message']['date']
         return datetime.fromtimestamp(date)
     #
     @classmethod
     def get_username(self, message, dl=' '):
-        'Return \"first_name + dl + last_name\"'
+        'Return: \"first_name + dl + last_name\"'
         first = message['message']['chat']['first_name']
         last = message['message']['chat']['last_name']
         return '{}{}{}'.format(first, dl, last)
@@ -107,7 +107,7 @@ dt_format=None (Use default), msg_format=None (Use default)'''
         if msg_format: self.msg_format = msg_format
     #
     def __str__(self):
-        'Return \"Format string.\"'
+        'Return: \"Format string.\"'
         try:
             fmt = Formatter()
             buff = []
@@ -150,13 +150,13 @@ class Telegram(object):
         self.__web.request(method, self.__url.path + target)
     #
     def get_botname(self):
-        'Return json_data'
+        'Return: json data.'
         self.__send_req('getMe')
         data = Request(self.__web)
-        return data.json
+        return data.data
     #
     def get_resp(self):
-        'Return request_obj'
+        'Return: request object.'
         self.__send_req('getUpdates')
         return Request(self.__web)
     #
@@ -165,8 +165,9 @@ class Telegram(object):
         return self.get_resp()
     #
     def send_message(self, chat_id, message):
-        'Return request_obj'
+        'Return: request data.'
         data = urlencode({'chat_id': chat_id, 'text': message})
         self.__send_req('sendMessage?' + data, 'POST')
-        return Request(self.__web)
+        data = Request(self.__web)
+        return data.data
 
